@@ -3,6 +3,8 @@ from tkinter.ttk import *
 import math
 import numpy
 import sympy
+import scipy
+import scipy.optimize as so
 
 #Dimensions
 width = 1900
@@ -293,6 +295,58 @@ class menuBar:
                     graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, lasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color))
                 lastx = x
                 lasty = y
+        
+        elif '=' in func and 'y' in func:
+            split = func.split('=')
+            func = split[0]+"-("+split[1]+")"
+            
+            dx = 2*maxX/(width-370)
+            mx = (width-370)/(2*maxX)
+            my = (height-100)/(2*maxY)
+            x = -maxX
+            lastx = -maxX
+            lasty = [-float(x) for x in sympy.solve(sympy.N(func.replace('x', '('+str(x)+')'), maxn=8), minimal=True, simplify=False, rational=False) if "I" not in str(x)]
+            while x<maxX:
+                x += graph[27]*dx
+                yvals = [-float(x) for x in sympy.solve(sympy.N(func.replace('x', '('+str(x)+')'), maxn=8), minimal=True, simplify=False, rational=False) if "I" not in str(x)]
+                for y in yvals:
+                    try:
+                        Clasty = min(lasty, key=lambda x:abs(x-y))
+                    except:
+                        break
+                    if abs(y) > maxY*1.1:
+                        pass
+                    else:
+                        graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color))
+                lastx = x
+                lasty = yvals
+        
+        elif '=' in func and 'y' in func:
+            split = func.split('=')
+            func = split[0]+"-("+split[1]+")"
+            
+            dx = 2*maxX/(width-370)
+            mx = (width-370)/(2*maxX)
+            my = (height-100)/(2*maxY)
+            x = -maxX
+            lastx = -maxX
+            def f(x):
+                return func
+            lasty = [-float(x) for x in sympy.solve(sympy.N(func.replace('x', '('+str(x)+')'), maxn=8), minimal=True, simplify=False, rational=False) if "I" not in str(x)]
+            while x<maxX:
+                x += graph[27]*dx
+                yvals = [-float(x) for x in sympy.solve(sympy.N(func.replace('x', '('+str(x)+')'), maxn=8), minimal=True, simplify=False, rational=False) if "I" not in str(x)]
+                for y in yvals:
+                    try:
+                        Clasty = min(lasty, key=lambda x:abs(x-y))
+                    except:
+                        break
+                    if abs(y) > maxY*1.1:
+                        pass
+                    else:
+                        graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color))
+                lastx = x
+                lasty = yvals        
                 
     
     def closeTab(self, tabN):
