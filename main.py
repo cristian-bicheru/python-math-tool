@@ -7,6 +7,11 @@ import scipy
 import scipy.optimize as so
 import roots
 
+#############################
+# Python Math Tool          #
+# By: Cristian Bicheru 2018 #
+#############################
+
 #Dimensions
 width = 1900
 height = 1000
@@ -28,6 +33,43 @@ canvas = Canvas(tk, width=width, height=height, bg=backgroundC)
 tk.title("python math tool")
 tk.resizable(False, False)
 canvas.pack()
+
+# Intro Screen
+
+quickStartGuide = '''
+------------------ Quick Start Guide ------------------
+
+
+[] File Button:
+
+Let's you create new graph panes or command line panes.
+
+
+[] Tab Bar:
+
+Let's you navigate and close tabs.
+
+
+[] Graphs:
+
+Supports implicit, explicit, and most trig functions.
+SEC, CSC, COT, and their inverses and hyperbolic
+equivalents are not supported. Functions in terms of
+integrals or derivatives are not supported as of now.
+
+
+[] Command Lines:
+
+Let's you run code. Use output = {your output} to
+specify your output.
+'''
+
+quickStart = Text(tk, state='normal', bg=backgroundC, width=55, height = 27)
+quickStart.insert("end-1c", quickStartGuide)
+quickStart.config(state='disabled')
+quickStart.place(x=30, y=100)
+
+#----
 
 s = Style(tk)
 s.theme_use('clam')
@@ -120,7 +162,7 @@ class menuBar:
             graph[22].place(x=125, y=185)
             
             graph.append(Entry(graph[0], width=8))
-            graph[23].insert(0, "10, 10")
+            graph[23].insert(0, "10, 6")
             graph[23].place(x=10, y=232.5)
             graph.append(Button(graph[0], text="Set Bounds", command=lambda : self.changeBounds(graph[23].get(), tabN), width=14))
             graph[24].place(x=72.5, y=227.5)
@@ -149,12 +191,67 @@ class menuBar:
             self.tabs[tabN][4].place(x=tabN*160+135, y=37.5)
             self.tabs[tabN].append(Button(self.tabs[tabN][4], text="x", command=lambda : self.closeTab(tabN)))
             self.tabs[tabN][5].pack(fill=BOTH, expand=1)
+
+
+            cmd = self.tabs[tabN]
+            #Creates Input/Output Fields, could use some code cleanup
+            boxes = {}
+            b=0
+            boxes[0] = [Frame(cmd[0], height=200, width=width-10)]
+            boxes[0][0].pack_propagate(0)
+            boxes[0][0].place(x=5, y=5+311*b)
+            boxes[0].append(Text(boxes[b][0]))
+            boxes[0][1].pack(fill=BOTH, expand=1)
+            boxes[0].append(Button(boxes[b][0], text="Execute", width=8, command=lambda : self.executeCode(tabN, 0)))
+            boxes[0][2].place(x=width-75, y=167.5)
+            boxes[0].append(Frame(cmd[0], height=100, width=width-10))
+            boxes[0][3].pack_propagate(0)
+            boxes[0][3].place(x=5, y=211+311*b)
+            boxes[0].append(Text(boxes[b][3], state="disabled"))
+            boxes[0][4].pack(fill=BOTH, expand=1)
+            boxes[0].append(cmd[1].create_rectangle(2, 2+311*b, width-2, 208+311*b, width=2))
+            b=1
+            boxes[1] = [Frame(cmd[0], height=200, width=width-10)]
+            boxes[1][0].pack_propagate(0)
+            boxes[1][0].place(x=5, y=5+311*b)
+            boxes[1].append(Text(boxes[b][0]))
+            boxes[1][1].pack(fill=BOTH, expand=1)
+            boxes[1].append(Button(boxes[b][0], text="Execute", width=8, command=lambda : self.executeCode(tabN, 1)))
+            boxes[1][2].place(x=width-75, y=167.5)
+            boxes[1].append(Frame(cmd[0], height=100, width=width-10))
+            boxes[1][3].pack_propagate(0)
+            boxes[1][3].place(x=5, y=211+311*b)
+            boxes[1].append(Text(boxes[b][3], state="disabled"))
+            boxes[1][4].pack(fill=BOTH, expand=1)
+            boxes[1].append(cmd[1].create_rectangle(2, 2+311*b, width-2, 208+311*b, width=2))
+            b=2
+            boxes[2] = [Frame(cmd[0], height=200, width=width-10)]
+            boxes[2][0].pack_propagate(0)
+            boxes[2][0].place(x=5, y=5+311*b)
+            boxes[2].append(Text(boxes[b][0]))
+            boxes[2][1].pack(fill=BOTH, expand=1)
+            boxes[2].append(Button(boxes[b][0], text="Execute", width=8, command=lambda : self.executeCode(tabN, 2)))
+            boxes[2][2].place(x=width-75, y=167.5)
+            boxes[2].append(Frame(cmd[0], height=100, width=width-10))
+            boxes[2][3].pack_propagate(0)
+            boxes[2][3].place(x=5, y=211+311*b)
+            boxes[2].append(Text(boxes[b][3], state="disabled"))
+            boxes[2][4].pack(fill=BOTH, expand=1)
+            boxes[2].append(cmd[1].create_rectangle(2, 2+311*b, width-2, 208+311*b, width=2))
+
+            
+            cmd.append(boxes)
+
+            
             tk.update()
 
-    def changeAccuracy(self, a, tabN, coords):
-        graph = self.tabs[tabN]
-        graph[27] = abs(float(a))
-        self.changeBounds(coords, tabN)
+    
+    def executeCode(self, tabN, b):
+        cmd = self.tabs[tabN]
+        cmd[6][b][4].config(state="normal")
+        cmd[6][b][4].delete(1.0, "end-1c")
+        cmd[6][b][4].insert("end-1c", str(roots.execCode(cmd[6][b][1].get("1.0",'end-1c'))))
+        cmd[6][b][4].config(state="disabled")
         
     
     def changeBounds(self, newBounds, tabN):

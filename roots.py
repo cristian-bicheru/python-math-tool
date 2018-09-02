@@ -34,6 +34,9 @@ def quickFilter(func, maxY):
         croots = 1
         for i in range(-maxY*2, (maxY+1)*2):
             fi = f(i/2)
+            if fi == 0:
+                croots = 0
+                break
             if sign == 2:
                 sign = fi/abs(fi)
             if sign != fi/abs(fi):
@@ -152,6 +155,19 @@ def containsSpec(func):
         if each in func:
             return 1    
     return 0
+
+def getVal(f):
+    return 
+
+def execCode(code):
+    try:
+        global output
+        exec("global output\noutput = None\n"+code)
+        if output == None:
+            output = "output variable was not specified or is None"
+        return output
+    except Exception as e:
+        return "ERROR: "+str(e)
 
 
 #For Benchmarking Different Algorithms:
