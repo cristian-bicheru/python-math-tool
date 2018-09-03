@@ -1,11 +1,13 @@
 import scipy.optimize as so
 import numpy
 import sympy
+#import autograd.numpy as numpy
+#import autograd
 import time
 
-tfunctions = ["arcsinh", "arccosh", "arctanh", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "sin", "cos", "tan"]
-tfunctions2 = ["arcsINh", "arccOSh", "arctANh", "arcsIN", "arccOS", "arctAN", "sINh", "cOSh", "tANh", "sin", "cos", "tan"]
-otherfunc = ["abs"]
+tfunctions = ("arcsinh", "arccosh", "arctanh", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "sin", "cos", "tan")
+tfunctions2 = ("arcsINh", "arccOSh", "arctANh", "arcsIN", "arccOS", "arctAN", "sINh", "cOSh", "tANh", "sin", "cos", "tan")
+otherfunc = ("abs")
 
 def Format(func):
     for x in range(0, len(tfunctions)):
@@ -27,7 +29,7 @@ def quickFilter(func, maxY):
     if check == 0:
         def f(y):
             y = str(y).replace('[', '').replace(']', '')
-            return eval(func.replace('Y', "("+str(y)+")"))
+            return eval(func.replace('Y', f'({y})'))
 
 
         sign = 2
@@ -48,15 +50,75 @@ def quickFilter(func, maxY):
 
 def accuracyAlg(maxslope):
     return (1/(maxslope+0.001))**2*8+0.5
+
+def existSol(func, maxY):
+    test = quickFilter(func, maxY)
+    func = Format(func)
+    if test == 0:
+        def f(y):
+            y = str(y).replace('[', '').replace(']', '')
+            return eval(func.replace('Y', f'({y})'))
+        try:
+            solution = float(str(so.fsolve(f, 5)).replace("[", '').replace("]", ''))
+            solution2 = float(str(so.fsolve(f, -5)).replace("[", '').replace("]", ''))
+            cap = maxY*1.15
+            check = 2
+            if abs(solution) > cap or abs(f(solution))>0.1:
+                check += -1
+            if abs(solution2) > cap or abs(f(solution2))>0.1:
+                check += -1
+                
+            if check > 0:
+                return 1
+            else:
+                return 0
+        except:
+            return 0
+        
+    else:
+        return 0
+        
+
+prevDerivatives = {}
            
-def dydx(func, a, b):
+def dydx(func, a, b, method):
     Y = sympy.Symbol('Y')
     x = sympy.Symbol('x')
-    try:
-        dydx = eval(Format(str(sympy.idiff(sympy.sympify(func), Y, x))).replace('x', '('+str(a)+')').replace('Y', '('+str(b)+')'))
-    except:
-        dydx = 1
+    dydxCached = prevDerivatives.get(func, None)
+    if dydxCached:
+        try:
+            dydx = eval(dydxCached.replace('x', f'({a})').replace('Y', f'({b})'))
+        except:
+            dydx = 1
+    else:
+        try:
+            adydx = Format(str(sympy.idiff(sympy.sympify(func), Y, x)))
+            prevDerivatives[func] = adydx
+            dydx = eval(adydx.replace('x', f'({a})').replace('Y', f'({b})'))
+        except:
+            dydx = 1
     return dydx
+
+#prevADerivatives = {}
+
+#def autodydx(func, X):   #Autograd is useful here since we need gradient optimization, 
+#    dydxCached = prevDerivatives.get(func, None)
+#    if dydxCached:
+#        try:
+#            dydx = dydxCached(X)
+#        except:
+#            dydx = 1
+#    else:
+#        try:
+#            fFunc = Format(func)
+#            def f(x):
+#                return eval(fFunc.replace('x', f'({x})'))
+#            adydx = autograd.grad()
+#            prevDerivatives[func] = adydx
+#            dydx = adydx(X)
+#        except:
+#            dydx = 1
+#    return dydx
 
 def solve(func, maxY, algorithm):
     
@@ -73,7 +135,7 @@ def solve(func, maxY, algorithm):
         solutions = []
         def f(y):
             y = str(y).replace('[', '').replace(']', '')
-            return eval(func.replace('Y', "("+str(y)+")"))
+            return eval(func.replace('Y', f'({y})'))
         for i in range(-maxY, maxY+1):
             if i != 0:
                 try:
@@ -140,8 +202,9 @@ def solve(func, maxY, algorithm):
         for i in range(0, len(solutions)):
             solutions[i] = round(solutions[i], 4)
         solutions = list(set(solutions))
+        cap = maxY*1.15
         for each in solutions:
-            if abs(each) > maxY*1.15:
+            if abs(each) > cap:
                 solutions.remove(each)
         return [solutions, hybrF]
     else:
@@ -156,18 +219,16 @@ def containsSpec(func):
             return 1    
     return 0
 
-def getVal(f):
-    return 
-
 def execCode(code):
     try:
         global output
-        exec("global output\noutput = None\n"+code)
+        exec(f"global output\noutput = None\n{code}")
         if output == None:
             output = "output variable was not specified or is None"
         return output
     except Exception as e:
-        return "ERROR: "+str(e)
+        return f"ERROR: {e}"
+
 
 
 #For Benchmarking Different Algorithms:

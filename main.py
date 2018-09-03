@@ -389,10 +389,10 @@ class menuBar:
             my = (height-100)/(2*maxY)
             x = -maxX
             lastx = -maxX
-            lasty = -sympy.N(func.replace('x', '('+str(x)+')'))
+            lasty = -eval(func.replace('x', f'({x})'))
             while x<maxX:
                 x += graph[27]*dx
-                y = -sympy.N(func.replace('x', '('+str(x)+')'))
+                y = -sympy.N(func.replace('x', f'({x})'))
                 if abs(y) > maxY*1.1:
                     pass
                 elif "I" in str(y):
@@ -418,7 +418,7 @@ class menuBar:
             x = -maxX
             lastx = -maxX
             try:
-                lasty = -eval(roots.Format(func.replace('x', '('+str(x)+')')))
+                lasty = -eval(roots.Format(func.replace('x', f'({x})')))
                 if str(lasty) == 'nan' or str(lasty) == 'inf':
                     lasty = 'err'
             except:
@@ -426,7 +426,7 @@ class menuBar:
             while x<maxX:
                 x += graph[27]*dx
                 try:
-                    y = -eval(roots.Format(func.replace('x', '('+str(x)+')')))
+                    y = -eval(roots.Format(func.replace('x', f'({x})')))
                     if str(y) == 'nan' or str(y) == 'inf':
                         y = 'err'
                 except:
@@ -452,47 +452,8 @@ class menuBar:
                     graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, lasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=2))
                 lastx = x
                 lasty = y        
-        elif '=' in func and 'y' in func and roots.containsSpec(func) == 0:
-            split = func.split('=')
-            func = split[0]+"-("+split[1]+")"
-            
-            dx = 2*maxX/(width-370)
-            mx = (width-370)/(2*maxX)
-            my = (height-100)/(2*maxY)
-            x = -maxX
-            lastx = -maxX
-            lasty = [-float(x) for x in sympy.solve(sympy.N(func.replace('x', '('+str(x)+')'), maxn=8), minimal=True, simplify=False, rational=False) if "I" not in str(x)]
-            while x<maxX:
-                x += graph[27]*dx
-                yvals = [-float(x) for x in sympy.solve(sympy.N(func.replace('x', '('+str(x)+')'), maxn=8), minimal=True, simplify=False, rational=False) if "I" not in str(x)]
-                #Accuracy Calculator
-                maxslope = 0
-                if lasty != []:
-                    for each in lasty:
-                        s = abs(float(roots.dydx(func, lastx, each)))
-                        if s > maxslope:
-                            maxslope = s
-                    graph[27] = roots.accuracyAlg(maxslope)
-                    if graph[27] > maxDx:
-                        graph[27] = maxDx
-                else:
-                    graph[27] = 5
-                    if yvals != []:
-                        graph[27] = 1
-                #
-                for y in yvals:
-                    try:
-                        Clasty = min(lasty, key=lambda x:abs(x-y))
-                    except:
-                        break
-                    if abs(y) > maxY*1.1:
-                        pass
-                    else:
-                        graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=2))
-                lastx = x
-                lasty = yvals
-        
-        elif '=' in func and 'y' in func and roots.containsSpec(func) == 1:
+
+        elif '=' in func and 'y' in func:
             alg = "auto" #hybr seemed fast in testing but seems to have problems
             func = func.replace('y', "Y")
             split = func.split('=')
@@ -503,14 +464,14 @@ class menuBar:
             my = (height-100)/(2*maxY)
             x = -maxX
             lastx = -maxX
-            compute = roots.solve((func.replace('x', '('+str(x)+')')), maxY, alg)
+            compute = roots.solve((func.replace('x', f'({x})')), maxY, alg)
             if compute[1] == 1 and alg == 'hybr':
                 alg = "auto"
                 print("hybr failed")
             lasty = [-float(a) for a in compute[0]]
             while x<maxX:
                 x += graph[27]*dx
-                yvals = [-float(x) for x in roots.solve((func.replace('x', '('+str(x)+')')), maxY, alg)[0]]
+                yvals = [-float(x) for x in roots.solve((func.replace('x', f'({x})')), maxY, alg)[0]]
                 #Accuracy Calculator
                 maxslope = 0
                 if lasty != []:
@@ -526,6 +487,7 @@ class menuBar:
                     if yvals != []:
                         graph[27] = 1
                 #
+                print(graph[27])
                 for y in yvals:
                     try:
                         Clasty = min(lasty, key=lambda x:abs(x-y))
