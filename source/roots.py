@@ -49,7 +49,7 @@ def quickFilter(func, maxY):
     return croots
 
 def accuracyAlg(maxslope):
-    return (1/(maxslope+0.001))**2*8+0.5
+    return (1/(maxslope+0.001))**2*10+0.5
 
 def existSol(func, maxY):
     test = quickFilter(func, maxY)
@@ -81,7 +81,7 @@ def existSol(func, maxY):
 
 prevDerivatives = {}
            
-def dydx(func, a, b, method):
+def dydx(func, a, b):
     Y = sympy.Symbol('Y')
     x = sympy.Symbol('x')
     dydxCached = prevDerivatives.get(func, None)
@@ -219,15 +219,7 @@ def containsSpec(func):
             return 1    
     return 0
 
-def execCode(code):
-    try:
-        global output
-        exec(f"global output\noutput = None\n{code}")
-        if output == None:
-            output = "output variable was not specified or is None"
-        return output
-    except Exception as e:
-        return f"ERROR: {e}"
+
 
 
 
