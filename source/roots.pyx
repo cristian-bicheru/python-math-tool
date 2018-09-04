@@ -9,33 +9,38 @@ tfunctions = ("arcsinh", "arccosh", "arctanh", "arcsin", "arccos", "arctan", "si
 tfunctions2 = ("arcsINh", "arccOSh", "arctANh", "arcsIN", "arccOS", "arctAN", "sINh", "cOSh", "tANh", "sin", "cos", "tan")
 otherfunc = ("abs")
 
+cdef double f(func, double y):
+    cdef a
+    a = str(y).replace('[', '').replace(']', '')
+    return eval(func.replace('Y', f'({a})'))
+
 def Format(func):
     for x in range(0, len(tfunctions)):
-        func = func.replace(tfunctions[x], "numpy."+tfunctions2[x])
+        func = func.replace(tfunctions[x], "cfunctions."+tfunctions2[x])
     return func.replace("IN", "in").replace("AN", "an").replace("OS", "os").replace('^', '**')
 
 
-def quickFilter(func, maxY):
-    check = 0
-    func = str(sympy.N(func))
-    for trigF in tfunctions:
-        if trigF in func:
+cdef int quickFilter(func, int maxY) except? -2:
+    cdef int check = 0
+    cdef int croots = 0
+    cdef int i
+    cdef double sign = 2
+    cdef double fi
+    for i from 0 <= i < len(tfunctions) by 1:
+        if tfunctions[i] in func:
             check += 1
             break
-    for otherF in otherfunc:
-        if otherF in func:
+    for i from 0 <= i < len(otherfunc) by 1:
+        if otherfunc[i] in func:
             check += 1
             break
     if check == 0:
-        def f(y):
-            y = str(y).replace('[', '').replace(']', '')
-            return eval(func.replace('Y', f'({y})'))
 
 
-        sign = 2
+
         croots = 1
-        for i in range(-maxY*2, (maxY+1)*2):
-            fi = f(i/2)
+        for i from -maxY*2 <= i < (maxY+1)*2 by 1:
+            fi = f(func, i/2)
             if fi == 0:
                 croots = 0
                 break
@@ -48,10 +53,11 @@ def quickFilter(func, maxY):
         croots = 0
     return croots
 
-def accuracyAlg(maxslope):
-    return (1/(maxslope+0.001))**2*10+0.5
+cdef double accuracyAlg(double maxslope):
+    return (1/(maxslope+0.001))**3*10+0.05
 
 def existSol(func, maxY):
+    cdef int test
     test = quickFilter(func, maxY)
     func = Format(func)
     if test == 0:

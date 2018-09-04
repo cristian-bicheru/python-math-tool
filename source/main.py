@@ -26,7 +26,7 @@ backgroundC = "#EAEAEA"
 menuBarC = "#C0C0C0"
 tabBarC = "#F1F1F1"
 tabBackgroundC = "#FCFCFC"
-colors = ["red", "green", "blue", "purple", "orange"] #line colors for graph
+colors = ("red", "green", "blue", "purple", "orange") #line colors for graph
 #Miscellanious
 maxDx = 25
 
@@ -399,6 +399,7 @@ class menuBar:
       
 
         elif '=' in func and 'y' in func:
+            wait = 0
             alg = "auto" #hybr seemed fast in testing but seems to have problems
             func = func.replace('y', "Y")
             split = func.split('=')
@@ -415,18 +416,28 @@ class menuBar:
                 print("hybr failed")
             lasty = [-float(a) for a in compute[0]]
             while x<maxX:
-                x += graph[27]*dx
+                if wait == 0:
+                    x += graph[27]*dx
+                else:
+                    x += 0.01
                 yvals = [-float(x) for x in roots.solve((func.replace('x', f'({x})')), maxY, alg)[0]]
                 #Accuracy Calculator
                 maxslope = 0
-                if lasty != []:
+                if yvals == []:
+                    graph[27] = 5
+                    pass
+                elif wait == 1:
+                    wait = 0
+                    pass
+                elif lasty != []:
                     graph[27] = cfunctions.getAccuracy(func, lasty, lastx)
                     if graph[27] > maxDx:
                         graph[27] = maxDx
-                else:
-                    graph[27] = 5
-                    if yvals != []:
-                        graph[27] = 1
+                elif lasty == [] and yvals != []:
+                    graph[27] = 0.5
+                    x = lastx
+                    wait = 1
+                    pass
                 #
                 for y in yvals:
                     try:
@@ -436,7 +447,7 @@ class menuBar:
                     if abs(y) > maxY*1.1:
                         pass
                     else:
-                        graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=2))
+                        graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=1))
                 lastx = x
                 lasty = yvals
                 
