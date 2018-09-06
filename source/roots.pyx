@@ -16,7 +16,7 @@ cdef double f(func, double y):
 
 def Format(func):
     for x in range(0, len(tfunctions)):
-        func = func.replace(tfunctions[x], "cfunctions."+tfunctions2[x])
+        func = func.replace(tfunctions[x], "numpy."+tfunctions2[x])
     return func.replace("IN", "in").replace("AN", "an").replace("OS", "os").replace('^', '**')
 
 
@@ -54,7 +54,7 @@ cdef int quickFilter(func, int maxY) except? -2:
     return croots
 
 cdef double accuracyAlg(double maxslope):
-    return (1/(maxslope+0.001))**3*10+0.05
+    return (1/(maxslope+0.001))**3*10+0.3
 
 def existSol(func, maxY):
     cdef int test
@@ -97,13 +97,22 @@ def dydx(func, a, b):
         except:
             dydx = 1
     else:
-        try:
-            adydx = Format(str(sympy.idiff(sympy.sympify(func), Y, x)))
-            prevDerivatives[func] = adydx
-            dydx = eval(adydx.replace('x', f'({a})').replace('Y', f'({b})'))
-        except:
-            dydx = 1
+        if "Y" in func:
+            try:
+                adydx = Format(str(sympy.idiff(sympy.sympify(func), Y, x)))
+                prevDerivatives[func] = adydx
+                dydx = eval(adydx.replace('x', f'({a})').replace('Y', f'({b})'))
+            except:
+                dydx = 1
+        else:
+            try:
+                adydx = Format(str(sympy.idiff(sympy.sympify(func), x)))
+                prevDerivatives[func] = adydx
+                dydx = eval(adydx.replace('x', f'({a})'))
+            except:
+                dydx = 1        
     return dydx
+
 
 #prevADerivatives = {}
 

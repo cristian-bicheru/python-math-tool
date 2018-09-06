@@ -2,28 +2,29 @@ import roots
 from tkinter import *
 import numpy
 import math
+import time
 
 cpdef double sin(double x) except? -2:
-    x = x%6.283
+    x = x%6.2831853
     cdef double r
-    if x > 3.14:
+    if x > 3.14159265:
         x = 6.28-x
-        r = -1*16*x*(3.14-x)/(49.35-4*x*(3.14-x))
+        r = -1*16*x*(3.14159265-x)/(49.348022-4*x*(3.14159265-x))
         return r
     else:
-        r = 16*x*(3.14-x)/(49.35-4*x*(3.14-x))
+        r = 16*x*(3.14159265-x)/(49.348022-4*x*(3.14159265-x))
         return r
 
 
 cpdef double cos(double x) except? -2:
-    x = x%6.283+1.57
+    x = x%6.2831853+1.5707963
     cdef double r
-    if x > 3.14:
+    if x > 3.14159265:
         x = 6.28-x
-        r = -1*16*x*(3.14-x)/(49.35-4*x*(3.14-x))
+        r = -1*16*x*(3.14159265-x)/(49.348022-4*x*(3.14159265-x))
         return r
     else:
-        r = 16*x*(3.14-x)/(49.35-4*x*(3.14-x))
+        r = 16*x*(3.14159265-x)/(49.348022-4*x*(3.14159265-x))
         return r
 
 cpdef double arcsin(double x) except? -2:
@@ -32,26 +33,23 @@ cpdef double arcsin(double x) except? -2:
         if x<=1:
             r = x + x**3/6 + 0.15*x**5 + 0.238*x**25
             return r
+        else:
+            return "err"
+    else:
+        return "err"
 
 cpdef double arccos(double x) except? -2:
     cpdef double asin
     asin = arcsin(x)
     if isinstance(asin, float) == True or isinstance(asin, int) == True:
-        return 1.5707-asin
+        return 1.5707963-asin
 
 cpdef double tan(double x):
-    cdef:
-        double sinv
-        double cosv
-        double r
-    sinv = sin(x)
-    cosv = cos(x)
-    r = sinv/cosv
-    return r
+    return numpy.tan(x)
 
 cpdef double arctan(double x):
     cdef:
-        double c = 0.59623
+        double c = 0.596227
         double r
     if  x>= 0:
         r = 1.57*(c+x)*x/(1+2*c*x+x*x)
@@ -61,21 +59,21 @@ cpdef double arctan(double x):
     
 cpdef double sinh(double x):
     cdef:
-        double e = 2.7183
+        double e = 2.7182818
         double r
     r = (e**(2*x)-1)/(2*e**x)
     return r
     
 cpdef double cosh(double x):
     cdef:
-        double e = 2.7183
+        double e = 2.7182818
         double r
     r = (e**(2*x)+1)/(2*e**x)
     return r
 
 cpdef double tanh(double x):
     cdef:
-        double e = 2.7183
+        double e = 2.7182818
         double r
     r = (e**(2*x)-1)/(e**(2*x)+1)
     return r
@@ -99,7 +97,7 @@ cpdef double arctanh(double x):
             return r
 
 cdef double accuracyAlg(double maxslope):
-    return (1/(maxslope+0.001))**3*10+0.05
+    return (1/(maxslope+0.001))**3*10
         
 def getAccuracy(func, lasty, lastx):
     vals = []
@@ -108,6 +106,7 @@ def getAccuracy(func, lasty, lastx):
     return accuracyAlg(max(vals))
 
 def drawExplicit(x, dx, mx, my, lastx, lasty, g11, g10, height, width, maxX, maxY, func, maxDx, color):
+    start = time.time()
     accuracy = 1
     while x<maxX:
         x += accuracy*dx
@@ -129,10 +128,13 @@ def drawExplicit(x, dx, mx, my, lastx, lasty, g11, g10, height, width, maxX, max
             g11.append(g10.create_line(lastx*mx+(width-370)/2, lasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=1))
         lastx = x
         lasty = y
+    print(time.time()-start)
     return g11
 
 def drawExplicitTrig(x, dx, mx, my, lastx, lasty, g11, g10, height, width, maxX, maxY, func, maxDx, color):
     accuracy = 1
+    start = time.time()
+    wait = 0
     while x<maxX:
         if wait == 0:
             x += accuracy*dx
@@ -143,21 +145,22 @@ def drawExplicitTrig(x, dx, mx, my, lastx, lasty, g11, g10, height, width, maxX,
             if not y:
                 y = 'err'
             else:
-                y = -y
+                try:
+                    y = -y
+                except:
+                    pass
         except:
             y = "err"
-        if y == "err":
-            if accuracy != 0.05:
-                accuracy = maxDx
-            pass
-        elif wait == 1:
+        if wait >= 1:
             wait = 0
+            pass
+        elif y == "err":
             pass
         elif lasty == "err":
             accuracy = 0.5
             x = lastx
             wait = 1
-            pass
+            pass  
         elif abs(y) > maxY*1.1:
             pass
         elif "I" in str(y):
@@ -175,5 +178,5 @@ def drawExplicitTrig(x, dx, mx, my, lastx, lasty, g11, g10, height, width, maxX,
             g11.append(g10.create_line(lastx*mx+(width-370)/2, lasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=1))
         lastx = x
         lasty = y
-        print(y)
+    print(time.time()-start)
     return g11

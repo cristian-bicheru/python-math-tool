@@ -8,6 +8,7 @@ import scipy.optimize as so
 import roots
 import others
 import cfunctions
+import time
 
 #############################
 # Python Math Tool          #
@@ -399,6 +400,7 @@ class menuBar:
       
 
         elif '=' in func and 'y' in func:
+            start = time.time()
             wait = 0
             alg = "auto" #hybr seemed fast in testing but seems to have problems
             func = func.replace('y', "Y")
@@ -450,6 +452,7 @@ class menuBar:
                         graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=1))
                 lastx = x
                 lasty = yvals
+            print(time.time()-start)
                 
     
     def closeTab(self, tabN):
