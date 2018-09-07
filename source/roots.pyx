@@ -4,9 +4,11 @@ import sympy
 #import autograd.numpy as numpy
 #import autograd
 import time
+import cfunctions
 
 tfunctions = ("arcsinh", "arccosh", "arctanh", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "sin", "cos", "tan")
 tfunctions2 = ("arcsINh", "arccOSh", "arctANh", "arcsIN", "arccOS", "arctAN", "sINh", "cOSh", "tANh", "sin", "cos", "tan")
+tfunctions3 = (".arcsinh(", ".arccosh(", ".arctanh(", ".arcsin(", ".arccos(", ".arctan(", ".sinh(", ".cosh(", ".tanh(", ".sin(", ".cos(", ".tan(")
 otherfunc = ("abs")
 
 cdef double f(func, double y):
@@ -54,7 +56,7 @@ cdef int quickFilter(func, int maxY) except? -2:
     return croots
 
 cdef double accuracyAlg(double maxslope):
-    return (1/(maxslope+0.001))**3*10+0.3
+    return (1/(maxslope+0.001))**3*10
 
 def existSol(func, maxY):
     cdef int test
@@ -143,16 +145,20 @@ def solve(func, maxY, algorithm):
     
     func = Format(func)
 
+    if containsSpec(func) == 0:
+        quickTest = 1
+    elif countTrig(func) == 1:
+        quickTest = 1
     
-
+    
     if test == 0:
-        
-        solutions = []
-        def f(y):
-            y = str(y).replace('[', '').replace(']', '')
-            return eval(func.replace('Y', f'({y})'))
-        for i in range(-maxY, maxY+1):
-            if i != 0:
+        if quickTest == 1:
+            solutions = []
+            def f(y):
+                y = str(y).replace('[', '').replace(']', '')
+                return eval(func.replace('Y', f'({y})'))
+            initGuesses = [-maxY/2, maxY/2]
+            for i in initGuesses:
                 try:
 
                     if algorithm == 'nk':
@@ -176,52 +182,116 @@ def solve(func, maxY, algorithm):
                     elif algorithm == 'df':
                         solutions.append(float(str(so.root(f, i, method='df-sane')['x']).replace("[", '').replace("]", '')))
                     else:
-                        if i == -maxY:
-                            timefs = time.time()
-                            solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
-                            timefs = time.time()-timefs
-                        if i == -maxY+1:
-                            timedb = time.time()
-                            solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
-                            timedb = time.time()-timefs
-                        if i >= -maxY+2:
-                            if timefs>timedb:
-                                solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
-                            else:
-                                solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                        solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
                     
                 except:
                     pass
-        if solutions == [] and algorithm == 'hy': #sometimes hybr fails to converge
-            hybrF = 1
+            if solutions == [] and algorithm == 'hy': #sometimes hybr fails to converge
+                hybrF = 1
+                for i in range(-maxY, maxY+1):
+                    if i != 0:
+                        try:
+                            if i == -maxY:
+                                timefs = time.time()
+                                solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                                timefs = time.time()-timefs
+                            if i == -maxY+1:
+                                timedb = time.time()
+                                solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
+                                timedb = time.time()-timefs
+                            if i >= -maxY+2:
+                                if timefs>timedb:
+                                    solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
+                                else:
+                                    solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                        except:
+                            pass
+
+                
+            for i in range(0, len(solutions)):
+                solutions[i] = round(solutions[i], 4)
+            solutions = list(set(solutions))
+            cap = maxY*1.15
+            for each in solutions:
+                if abs(each) > cap:
+                    solutions.remove(each)
+            return [solutions, hybrF]
+        else:
+            solutions = []
+            def f(y):
+                y = str(y).replace('[', '').replace(']', '')
+                return eval(func.replace('Y', f'({y})'))
             for i in range(-maxY, maxY+1):
                 if i != 0:
                     try:
-                        if i == -maxY:
-                            timefs = time.time()
-                            solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
-                            timefs = time.time()-timefs
-                        if i == -maxY+1:
-                            timedb = time.time()
+
+                        if algorithm == 'nk':
+                            solutions.append(float(str(so.newton_krylov(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'an':
+                            solutions.append(float(str(so.anderson(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'b1':
+                            solutions.append(float(str(so.broyden1(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'b2':
+                            solutions.append(float(str(so.broyden2(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'em':
+                            solutions.append(float(str(so.excitingmixing(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'lm':
+                            solutions.append(float(str(so.linearmixing(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'db':
                             solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
-                            timedb = time.time()-timefs
-                        if i >= -maxY+2:
-                            if timefs>timedb:
-                                solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
-                            else:
+                        elif algorithm == 'fs':
+                            solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                        elif algorithm == 'hy':
+                            solutions.append(float(str(so.root(f, i, method='hybr')['x']).replace("[", '').replace("]", '')))
+                        elif algorithm == 'df':
+                            solutions.append(float(str(so.root(f, i, method='df-sane')['x']).replace("[", '').replace("]", '')))
+                        else:
+                            if i == -maxY:
+                                timefs = time.time()
                                 solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                                timefs = time.time()-timefs
+                            if i == -maxY+1:
+                                timedb = time.time()
+                                solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
+                                timedb = time.time()-timefs
+                            if i >= -maxY+2:
+                                if timefs>timedb:
+                                    solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
+                                else:
+                                    solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                        
                     except:
                         pass
+            if solutions == [] and algorithm == 'hy': #sometimes hybr fails to converge
+                hybrF = 1
+                for i in range(-maxY, maxY+1):
+                    if i != 0:
+                        try:
+                            if i == -maxY:
+                                timefs = time.time()
+                                solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                                timefs = time.time()-timefs
+                            if i == -maxY+1:
+                                timedb = time.time()
+                                solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
+                                timedb = time.time()-timefs
+                            if i >= -maxY+2:
+                                if timefs>timedb:
+                                    solutions.append(float(str(so.diagbroyden(f, i)).replace("[", '').replace("]", '')))
+                                else:
+                                    solutions.append(float(str(so.fsolve(f, i)).replace("[", '').replace("]", '')))
+                        except:
+                            pass
 
-            
-        for i in range(0, len(solutions)):
-            solutions[i] = round(solutions[i], 4)
-        solutions = list(set(solutions))
-        cap = maxY*1.15
-        for each in solutions:
-            if abs(each) > cap:
-                solutions.remove(each)
-        return [solutions, hybrF]
+                
+            for i in range(0, len(solutions)):
+                solutions[i] = round(solutions[i], 4)
+            solutions = list(set(solutions))
+            cap = maxY*1.15
+            for each in solutions:
+                if abs(each) > cap:
+                    solutions.remove(each)
+            return [solutions, hybrF]
     else:
         return [[], 0]
 
@@ -234,6 +304,12 @@ def containsSpec(func):
             return 1    
     return 0
 
+def countTrig(func):
+    count = 0
+    for each in tfunctions3:
+        if each in func:
+            count += 1
+    return count
 
 
 

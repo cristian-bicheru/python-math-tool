@@ -398,7 +398,6 @@ class menuBar:
                 lasty = "err"
             graph[11] = cfunctions.drawExplicitTrig(-maxX, 2*maxX/(width-370), (width-370)/(2*maxX), (height-100)/(2*maxY), -maxX, lasty, graph[11], graph[10], height, width, maxX, maxY, func, maxDx, color)
       
-
         elif '=' in func and 'y' in func:
             start = time.time()
             wait = 0
@@ -418,38 +417,27 @@ class menuBar:
                 print("hybr failed")
             lasty = [-float(a) for a in compute[0]]
             while x<maxX:
-                if wait == 0:
-                    x += graph[27]*dx
-                else:
-                    x += 0.01
+                if lasty != []:
+                    graph[27] = cfunctions.getAccuracy(func, lasty, lastx)
+                    if graph[27] > maxDx:
+                        graph[27] = maxDx
+                x += graph[27]*dx
                 yvals = [-float(x) for x in roots.solve((func.replace('x', f'({x})')), maxY, alg)[0]]
                 #Accuracy Calculator
                 maxslope = 0
                 if yvals == []:
                     graph[27] = 5
                     pass
-                elif wait == 1:
-                    wait = 0
-                    pass
-                elif lasty != []:
-                    graph[27] = cfunctions.getAccuracy(func, lasty, lastx)
-                    if graph[27] > maxDx:
-                        graph[27] = maxDx
-                elif lasty == [] and yvals != []:
-                    graph[27] = 0.5
-                    x = lastx
-                    wait = 1
-                    pass
-                #
-                for y in yvals:
-                    try:
-                        Clasty = min(lasty, key=lambda x:abs(x-y))
-                    except:
-                        break
-                    if abs(y) > maxY*1.1:
-                        pass
-                    else:
-                        graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=1))
+                else:
+                    for y in yvals:
+                        try:
+                            Clasty = min(lasty, key=lambda x:abs(x-y))
+                        except:
+                            break
+                        if abs(y) > maxY*1.1:
+                            pass
+                        else:
+                            graph[11].append(graph[10].create_line(lastx*mx+(width-370)/2, Clasty*my+(height-100)/2, x*mx+(width-370)/2, y*my+(height-100)/2, fill = color, width=1))
                 lastx = x
                 lasty = yvals
             print(time.time()-start)

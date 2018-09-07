@@ -45,7 +45,13 @@ cpdef double arccos(double x) except? -2:
         return 1.5707963-asin
 
 cpdef double tan(double x):
-    return numpy.tan(x)
+    cdef:
+        double sinv
+        double cosv
+    sinv = sin(x)
+    cosv = cos(x)
+    r  = sinv/cosv
+    return r
 
 cpdef double arctan(double x):
     cdef:
@@ -97,7 +103,7 @@ cpdef double arctanh(double x):
             return r
 
 cdef double accuracyAlg(double maxslope):
-    return (1/(maxslope+0.001))**3*10
+    return (1/(maxslope+0.001))**3*10+0.1
         
 def getAccuracy(func, lasty, lastx):
     vals = []
